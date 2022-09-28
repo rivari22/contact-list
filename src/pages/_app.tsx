@@ -6,11 +6,11 @@ import { ClientSetup } from "../graphql";
 
 function MyApp({ Component, pageProps }: AppProps) {
   return (
-    <ApolloProvider client={ClientSetup}>
-      <ChakraProvider>
+    <ChakraProvider>
+      <ApolloProvider client={ClientSetup}>
         <Component {...pageProps} />
-      </ChakraProvider>
-    </ApolloProvider>
+      </ApolloProvider>
+    </ChakraProvider>
   );
 }
 
