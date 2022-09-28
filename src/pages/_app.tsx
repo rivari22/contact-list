@@ -1,18 +1,12 @@
-import "../styles/globals.css";
 import type { AppProps } from "next/app";
 import { ChakraProvider } from "@chakra-ui/react";
-import { ApolloClient, InMemoryCache, ApolloProvider } from "@apollo/client";
+import { ApolloProvider } from "@apollo/client";
 
-const URL_GRAPHQL = "https://wpe-hiring.tokopedia.net/"
-
-const CLIENT_SETUP = new ApolloClient({
-  uri: URL_GRAPHQL,
-  cache: new InMemoryCache(),
-});
+import { ClientSetup } from "../graphql";
 
 function MyApp({ Component, pageProps }: AppProps) {
   return (
-    <ApolloProvider client={CLIENT_SETUP}>
+    <ApolloProvider client={ClientSetup}>
       <ChakraProvider>
         <Component {...pageProps} />
       </ChakraProvider>
