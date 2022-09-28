@@ -13,7 +13,6 @@ import {
   MenuButton,
   MenuList,
   MenuItem,
-  MenuDivider,
   Text,
 } from "@chakra-ui/react";
 import {
@@ -21,34 +20,41 @@ import {
   DragHandleIcon,
   DeleteIcon,
   EditIcon,
+  PhoneIcon,
 } from "@chakra-ui/icons";
 
 import { contactType } from "../../graphql";
 import { defaultImage } from "../../constants";
+import TableFooter, { TableFooterProps } from "./TableFooter";
 
 export type onClick = {
   index: number;
   id: number;
-  type: "delete" | "edit" | "favorite";
+  type: "delete" | "edit" | "favorite" | "addPhoneNumber";
   selected?: boolean;
 };
 
 type TableProps = {
   data: Array<contactType>;
-  onClick: ({ index, id, type }: onClick) => void;
-};
+  handleOnClickTable: ({ index, id, type }: onClick) => void;
+} & TableFooterProps;
 
-const Table = ({ data, onClick }: TableProps) => {
+const Table: React.FC<TableProps> = ({
+  data,
+  handleOnClickTable,
+  handleOnChangePage,
+  pageInfo,
+}) => {
   return (
-    <Box border={"1px"} m={8}>
-      <Accordion allowMultiple>
+    <Box border={"1px"}>
+      {/* TODO: MOVE TO NEW FILE */}
+      <Accordion allowMultiple defaultIndex={[]}>
         {data?.map((record: contactType, indexMaster: number) => (
           <AccordionItem key={record.id}>
             <AccordionButton
               display="flex"
               alignItems="center"
               justifyContent="space-between"
-              m={2}
             >
               <Flex gap={2} alignItems="center">
                 <Box>
@@ -66,7 +72,7 @@ const Table = ({ data, onClick }: TableProps) => {
                   aria-label="button-favorite"
                   type="button"
                   onClick={(e) => {
-                    onClick({
+                    handleOnClickTable({
                       index: indexMaster,
                       id: record.id,
                       type: "favorite",
@@ -89,6 +95,27 @@ const Table = ({ data, onClick }: TableProps) => {
                   <MenuList color="white">
                     <MenuItem
                       icon={
+                        <PhoneIcon
+                          color="black"
+                          alignSelf="center"
+                          display="flex"
+                        />
+                      }
+                      iconSpacing="1"
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        handleOnClickTable({
+                          id: record.id,
+                          index: indexMaster,
+                          type: "addPhoneNumber",
+                        });
+                      }}
+                      color="white"
+                    >
+                      <Text color="black">Add phone number</Text>
+                    </MenuItem>
+                    <MenuItem
+                      icon={
                         <DeleteIcon
                           color="black"
                           alignSelf="center"
@@ -98,7 +125,7 @@ const Table = ({ data, onClick }: TableProps) => {
                       iconSpacing="1"
                       onClick={(e) => {
                         e.stopPropagation();
-                        onClick({
+                        handleOnClickTable({
                           id: record.id,
                           index: indexMaster,
                           type: "delete",
@@ -108,11 +135,10 @@ const Table = ({ data, onClick }: TableProps) => {
                     >
                       <Text color="black">Delete</Text>
                     </MenuItem>
-                    <MenuDivider />
                     <MenuItem
                       onClick={(e) => {
                         e.stopPropagation();
-                        onClick({
+                        handleOnClickTable({
                           id: record.id,
                           index: indexMaster,
                           type: "edit",
@@ -145,11 +171,11 @@ const Table = ({ data, onClick }: TableProps) => {
           </AccordionItem>
         ))}
       </Accordion>
-      {/* CHANGE TO PAGINATION */}
-      <Box display="flex" justifyContent="flex-end">
-        <div>pagination</div>
-      </Box>
-      {/* CHANGE TO PAGINATION */}
+      {/* TODO: MOVE TO NEW FILE */}
+      <TableFooter
+        handleOnChangePage={handleOnChangePage}
+        pageInfo={pageInfo}
+      />
     </Box>
   );
 };
