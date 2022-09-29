@@ -8,7 +8,6 @@ import {
   Flex,
   Box,
   IconButton,
-  Image,
   Menu,
   MenuButton,
   MenuList,
@@ -26,6 +25,7 @@ import {
 import { contactType } from "../../graphql";
 import { defaultImage } from "../../constants";
 import TableFooter, { TableFooterProps } from "./TableFooter";
+import Image from "next/image";
 
 export type onClick = {
   index: number;
@@ -48,7 +48,7 @@ const Table: React.FC<TableProps> = ({
   return (
     <Box border={"1px"}>
       {/* TODO: MOVE TO NEW FILE */}
-      <Accordion allowMultiple defaultIndex={[]}>
+      <Accordion allowMultiple defaultIndex={[]} allowToggle={false}>
         {data?.map((record: contactType, indexMaster: number) => (
           <AccordionItem key={record.id}>
             <AccordionButton
@@ -59,8 +59,9 @@ const Table: React.FC<TableProps> = ({
               <Flex gap={2} alignItems="center">
                 <Box>
                   <Image
-                    borderRadius="full"
-                    boxSize="20"
+                    width={80}
+                    height={80}
+                    style={{ borderRadius: "50%" }}
                     src={defaultImage}
                     alt="Dan Abramov"
                   />
@@ -180,4 +181,4 @@ const Table: React.FC<TableProps> = ({
   );
 };
 
-export default Table;
+export default React.memo(Table);

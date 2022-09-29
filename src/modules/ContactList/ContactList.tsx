@@ -1,12 +1,8 @@
 import { useMutation, useQuery } from "@apollo/client";
-import React, { useCallback, useState, Suspense } from "react";
+import React, { useCallback, useState, Suspense, useTransition } from "react";
 import dynamic from "next/dynamic";
-import {
-  Box,
-  Button,
-  useDisclosure,
-  useToast,
-} from "@chakra-ui/react";
+import { useRouter } from "next/router";
+import { Box, Button, Flex, useDisclosure, useToast } from "@chakra-ui/react";
 
 import { onClick, Table } from "../../components/Table";
 import {
@@ -18,6 +14,7 @@ import {
 import { getFavoriteLocalStorage } from "../../helpers";
 import { pageInfoType } from "../../components/Table/TableFooter";
 import { defaultPagination } from "../../constants";
+import { Search } from "../../components/Search";
 
 const ModalForm = dynamic(() => import("./partials/ModalForm"), {
   suspense: true,
@@ -28,6 +25,7 @@ type Props = {};
 const ContactList = (props: Props) => {
   const toast = useToast();
   const { isOpen, onOpen, onClose } = useDisclosure();
+  const router = useRouter();
 
   const [pageInfo, setPageInfo] = useState<pageInfoType>({
     limit: 5,
@@ -39,14 +37,28 @@ const ContactList = (props: Props) => {
   const [dataContactList, setDataContactList] = useState<Array<contactType>>(
     []
   );
+  const [searchInput, setSearchInput] = useState<string>("");
+  const [timerSearchInput, setTimerSearchInput] = useState<any>();
 
   const { loading, refetch: refetchGetContactList } = useQuery(
     GET_CONTACT_LIST,
     {
-      variables: defaultPagination,
+      fetchPolicy: "cache-and-network",
+      variables: {
+        ...defaultPagination,
+        where: {
+          first_name: {
+            _iregex: searchInput,
+          },
+          last_name: {
+            _iregex: searchInput,
+          },
+        },
+      },
       onCompleted: (res) => {
         if (!res) return;
 
+        clearTimeout(timerSearchInput);
         const favorites = getFavoriteLocalStorage();
         let dataSpecContactList = res?.contact;
         if (dataSpecContactList?.length) {
@@ -59,6 +71,8 @@ const ContactList = (props: Props) => {
             })
           );
           setDataContactList(dataSpecContactList);
+        } else {
+          // handle search empty
         }
       },
     }
@@ -124,11 +138,19 @@ const ContactList = (props: Props) => {
             },
           });
           break;
+        case "edit":
+          router.push({
+            query: {
+              edit: id,
+            },
+          });
+          onOpen();
+          break;
         default:
           break;
       }
     },
-    [deleteContact, toast]
+    [deleteContact, onOpen, router, toast]
   );
 
   // add toast, pagination still not right
@@ -157,12 +179,25 @@ const ContactList = (props: Props) => {
     [refetchGetContactList]
   );
 
-  if (loading) return <>loading</>;
+  const handleSearchInput = useCallback(
+    (event: any) => {
+      clearTimeout(timerSearchInput);
+      const time = setTimeout(() => {
+        console.log(event?.target?.value);
+        setSearchInput(event?.target?.value);
+      }, 1000);
+      setTimerSearchInput(time);
+    },
+    [timerSearchInput]
+  );
 
   return (
     <Box m={8} px={2}>
       <title>ContactList</title>
-      <Button onClick={onOpen}>Add Contact</Button>
+      <Flex justifyContent="space-between" mb={6}>
+        <Search onChange={handleSearchInput} />
+        <Button onClick={onOpen}>Add Contact</Button>
+      </Flex>
       <Table
         pageInfo={pageInfo}
         data={dataContactList || []}

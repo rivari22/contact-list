@@ -1,5 +1,6 @@
-import { useMutation } from "@apollo/client";
+import { useLazyQuery, useMutation } from "@apollo/client";
 import { AddIcon } from "@chakra-ui/icons";
+import { useRouter } from "next/router";
 import {
   Box,
   FormControl,
@@ -8,10 +9,16 @@ import {
   Input,
   Text,
   useToast,
+  Skeleton,
 } from "@chakra-ui/react";
-import React, { useCallback, useState } from "react";
+import React, { useCallback, useEffect, useState } from "react";
 import { Modal, ModalProps } from "../../../components/Modal";
-import { ADD_CONTACT } from "../../../graphql";
+import {
+  ADD_CONTACT,
+  EDIT_CONTACT,
+  EDIT_PHONE_NUMBER,
+  GET_CONTACT_DETAIL,
+} from "../../../graphql";
 
 type FormStateType = {
   firstName: string;
@@ -32,16 +39,62 @@ const initFormState = {
 
 const ModalForm = ({ isOpen, onClose }: Props) => {
   const toast = useToast();
+  const router = useRouter();
+  const editId = router?.query?.edit;
+
   const [addPhoneNumber, setAddPhoneNumber] = useState<string[]>([""]);
   const [formState, setFormState] = useState<FormStateType>(initFormState);
+
+  const [getContactDetail] = useLazyQuery(
+    GET_CONTACT_DETAIL,
+    {
+      fetchPolicy: "cache-and-network",
+      onCompleted: (res) => {
+        if (!res) return;
+
+        const result = res.contact_by_pk;
+        if (result) {
+          setFormState({
+            firstName: result.first_name,
+            lastName: result.last_name,
+          });
+        }
+      },
+      onError: (err) => {
+        toast({
+          title: `Error get detail, Error message: ${err?.message}`,
+          status: "error",
+          isClosable: true,
+          position: "top-right",
+          duration: 2000,
+        });
+      },
+    }
+  );
+
+  useEffect(() => {
+    const controller = new window.AbortController();
+
+    if (!!editId) {
+      getContactDetail({
+        variables: { id: +editId },
+        context: {
+          signal: controller.signal,
+        },
+      });
+    }
+
+    return () => controller.abort();
+  }, [getContactDetail, editId]);
 
   const handleOnCloseModal = useCallback(() => {
     setAddPhoneNumber([""]);
     setFormState(initFormState);
+    router.push({ query: "" });
     onClose();
-  }, [onClose]);
+  }, [onClose, router]);
 
-  const [addContact] = useMutation(ADD_CONTACT, {
+  const [addContact, { loading }] = useMutation(ADD_CONTACT, {
     onCompleted: (res) => {
       toast({
         title: "Success Add Contact",
@@ -61,6 +114,34 @@ const ModalForm = ({ isOpen, onClose }: Props) => {
         duration: 2000,
       });
     },
+  });
+
+  const [updateContact] = useMutation(EDIT_CONTACT, {
+    onCompleted: (res) => {
+      toast({
+        title: "Success Edit Contact",
+        status: "success",
+        isClosable: true,
+        position: "top-right",
+        duration: 1000,
+      });
+      handleOnCloseModal();
+    },
+    onError: () => {},
+  });
+
+  const [updatePhones] = useMutation(EDIT_PHONE_NUMBER, {
+    onCompleted: (res) => {
+      toast({
+        title: "Success Edit Contact",
+        status: "success",
+        isClosable: true,
+        position: "top-right",
+        duration: 1000,
+      });
+      handleOnCloseModal();
+    },
+    onError: () => {},
   });
 
   const handleOnChange = useCallback(
@@ -84,74 +165,105 @@ const ModalForm = ({ isOpen, onClose }: Props) => {
   const handleAddFieldPhoneNumber = useCallback(() => {
     setAddPhoneNumber((prev) => {
       const temp = [...prev];
-      console.log(temp, "temp");
       temp.push("");
       return [...temp];
     });
   }, []);
 
-  const handleOnSubmit = useCallback(() => {
+  const handleOnSubmit = useCallback(async () => {
     const payload = {
       first_name: formState.firstName,
       last_name: formState.lastName,
       phones: addPhoneNumber.map((phone: string) => ({ number: phone })),
     };
-    addContact({ variables: payload });
-  }, [formState, addPhoneNumber, addContact]);
+    if (editId) {
+      await updateContact({
+        variables: {
+          id: +editId,
+          _set: {
+            first_name: payload.first_name,
+            last_name: payload.last_name,
+          },
+        },
+      });
+    } else {
+      addContact({ variables: payload });
+    }
+  }, [
+    formState.firstName,
+    formState.lastName,
+    addPhoneNumber,
+    editId,
+    updateContact,
+    addContact,
+  ]);
 
   return (
     <Modal
       isOpen={isOpen}
-      title="Add Contact"
+      title={`${editId ? "Edit" : "Add"} Contact`}
       onClose={handleOnCloseModal}
       onClickSubmit={handleOnSubmit}
     >
-      <FormControl>
-        <FormLabel>First name</FormLabel>
-        <Input
-          placeholder="First name"
-          name="firstName"
-          onChange={handleOnChange}
-        />
-      </FormControl>
-
-      <FormControl mt={4}>
-        <FormLabel>Last name</FormLabel>
-        <Input
-          placeholder="Last name"
-          name="lastName"
-          onChange={handleOnChange}
-        />
-      </FormControl>
-
-      {addPhoneNumber?.map((item, index) => (
-        <FormControl mt={4} key={index}>
-          <FormLabel>{`Phone number ${index + 1}`}</FormLabel>
+      <Skeleton isLoaded={!loading}>
+        <FormControl>
+          <FormLabel>First name</FormLabel>
           <Input
-            placeholder="Phone Number"
-            type="number"
-            name="phoneNumber"
-            min={0}
-            value={item}
-            onChange={(e) => handleOnChange(e, index)}
+            placeholder="First name"
+            name="firstName"
+            onChange={handleOnChange}
+            value={formState.firstName}
           />
         </FormControl>
-      ))}
+      </Skeleton>
 
-      <Box
-        display="flex"
-        justifyContent="center"
-        alignItems="center"
-        mt={2}
-        gap={2}
-        onClick={handleAddFieldPhoneNumber}
-        cursor="pointer"
-      >
-        <IconButton aria-label="btn-add-phone-number">
-          <AddIcon />
-        </IconButton>
-        <Text>Add more phone number</Text>
-      </Box>
+      <Skeleton isLoaded={!loading}>
+        <FormControl mt={4}>
+          <FormLabel>Last name</FormLabel>
+          <Input
+            placeholder="Last name"
+            name="lastName"
+            onChange={handleOnChange}
+            value={formState.lastName}
+          />
+        </FormControl>
+      </Skeleton>
+
+      {!editId && (
+        <>
+          {addPhoneNumber?.map((item, index) => (
+            <Skeleton isLoaded={!loading} key={index}>
+              <FormControl mt={4}>
+                <FormLabel>{`Phone number ${index + 1}`}</FormLabel>
+                <Input
+                  placeholder="Phone Number"
+                  type="number"
+                  name="phoneNumber"
+                  min={0}
+                  value={item}
+                  onChange={(e) => handleOnChange(e, index)}
+                />
+              </FormControl>
+            </Skeleton>
+          ))}
+          <Skeleton isLoaded={!loading}>
+            <Box
+              display="flex"
+              justifyContent="center"
+              alignItems="center"
+              mt={2}
+              gap={2}
+              onClick={handleAddFieldPhoneNumber}
+              cursor="pointer"
+            >
+              <IconButton aria-label="btn-add-phone-number">
+                <AddIcon />
+              </IconButton>
+              <Text>Add more phone number</Text>
+            </Box>
+          </Skeleton>
+        </>
+      )}
     </Modal>
   );
 };
