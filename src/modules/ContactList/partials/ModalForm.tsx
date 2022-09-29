@@ -1,3 +1,4 @@
+import React, { useCallback, useEffect, useState } from "react";
 import { useLazyQuery, useMutation } from "@apollo/client";
 import { AddIcon } from "@chakra-ui/icons";
 import { useRouter } from "next/router";
@@ -11,14 +12,13 @@ import {
   useToast,
   Skeleton,
 } from "@chakra-ui/react";
-import React, { useCallback, useEffect, useState } from "react";
 import { Modal, ModalProps } from "../../../components/Modal";
 import {
   ADD_CONTACT,
   EDIT_CONTACT,
-  EDIT_PHONE_NUMBER,
   GET_CONTACT_DETAIL,
 } from "../../../graphql";
+import { notAllowedSpecialCharsRegex } from "../../../constants";
 
 type FormStateType = {
   firstName: string;
@@ -45,32 +45,29 @@ const ModalForm = ({ isOpen, onClose }: Props) => {
   const [addPhoneNumber, setAddPhoneNumber] = useState<string[]>([""]);
   const [formState, setFormState] = useState<FormStateType>(initFormState);
 
-  const [getContactDetail] = useLazyQuery(
-    GET_CONTACT_DETAIL,
-    {
-      fetchPolicy: "cache-and-network",
-      onCompleted: (res) => {
-        if (!res) return;
+  const [getContactDetail] = useLazyQuery(GET_CONTACT_DETAIL, {
+    fetchPolicy: "cache-and-network",
+    onCompleted: (res) => {
+      if (!res) return;
 
-        const result = res.contact_by_pk;
-        if (result) {
-          setFormState({
-            firstName: result.first_name,
-            lastName: result.last_name,
-          });
-        }
-      },
-      onError: (err) => {
-        toast({
-          title: `Error get detail, Error message: ${err?.message}`,
-          status: "error",
-          isClosable: true,
-          position: "top-right",
-          duration: 2000,
+      const result = res.contact_by_pk;
+      if (result) {
+        setFormState({
+          firstName: result.first_name,
+          lastName: result.last_name,
         });
-      },
-    }
-  );
+      }
+    },
+    onError: (err) => {
+      toast({
+        title: `Error get detail, Error message: ${err?.message}`,
+        status: "error",
+        isClosable: true,
+        position: "top-right",
+        duration: 2000,
+      });
+    },
+  });
 
   useEffect(() => {
     const controller = new window.AbortController();
@@ -127,21 +124,15 @@ const ModalForm = ({ isOpen, onClose }: Props) => {
       });
       handleOnCloseModal();
     },
-    onError: () => {},
-  });
-
-  const [updatePhones] = useMutation(EDIT_PHONE_NUMBER, {
-    onCompleted: (res) => {
+    onError: (err) => {
       toast({
-        title: "Success Edit Contact",
-        status: "success",
+        title: `Error: ${err.message}`,
+        status: "error",
         isClosable: true,
         position: "top-right",
-        duration: 1000,
+        duration: 2000,
       });
-      handleOnCloseModal();
     },
-    onError: () => {},
   });
 
   const handleOnChange = useCallback(
@@ -176,6 +167,20 @@ const ModalForm = ({ isOpen, onClose }: Props) => {
       last_name: formState.lastName,
       phones: addPhoneNumber.map((phone: string) => ({ number: phone })),
     };
+
+    const nameIsInvalid = notAllowedSpecialCharsRegex.test(
+      `${payload.first_name} ${payload.last_name}`
+    );
+    if (nameIsInvalid) {
+      return toast({
+        title: `Warning: Firstname or lastname cannot special character`,
+        status: "warning",
+        isClosable: true,
+        position: "top-right",
+        duration: 2000,
+      });
+    }
+    if (payload.first_name)
     if (editId) {
       await updateContact({
         variables: {
@@ -189,14 +194,7 @@ const ModalForm = ({ isOpen, onClose }: Props) => {
     } else {
       addContact({ variables: payload });
     }
-  }, [
-    formState.firstName,
-    formState.lastName,
-    addPhoneNumber,
-    editId,
-    updateContact,
-    addContact,
-  ]);
+  }, [formState.firstName, formState.lastName, addPhoneNumber, editId, toast, updateContact, addContact]);
 
   return (
     <Modal

@@ -37,9 +37,10 @@ const TableFooter = ({ handleOnChangePage, pageInfo }: TableFooterProps) => {
   }, [pageInfo.page]);
 
   return (
-    <Box display="flex" justifyContent="flex-end" my={2}>
+    <Box display="flex" justifyContent="flex-end" my={2} mr={2}>
       <Flex alignItems="center" gap={1}>
         <IconButton
+          colorScheme="blackAlpha"
           aria-label="button-left-pagination"
           disabled={page.currentPage === 1}
           onClick={() =>
@@ -54,8 +55,10 @@ const TableFooter = ({ handleOnChangePage, pageInfo }: TableFooterProps) => {
         </IconButton>
         {page?.pages.map((item, idx) => (
           <Button
+            colorScheme="facebook"
             key={idx}
             border={item.page === pageInfo.page ? "2px" : "none"}
+            borderColor="ActiveCaption"
             onClick={() =>
               handleOnChangePage({
                 page: item.page,
@@ -69,6 +72,7 @@ const TableFooter = ({ handleOnChangePage, pageInfo }: TableFooterProps) => {
           </Button>
         ))}
         <IconButton
+          colorScheme="blackAlpha"
           aria-label="button-right-pagination"
           disabled={!pageInfo.canGoNextPage}
           onClick={() =>
