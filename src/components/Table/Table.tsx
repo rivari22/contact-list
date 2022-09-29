@@ -47,6 +47,7 @@ type TableProps = {
   pagination?: TableFooterProps;
   EmptyData?: React.ReactNode | string;
   isLoading?: boolean;
+  dataTestId?: string;
 };
 
 const Table: React.FC<TableProps> = ({
@@ -58,6 +59,7 @@ const Table: React.FC<TableProps> = ({
   pagination,
   EmptyData,
   isLoading,
+  dataTestId
 }) => {
   const [isMobileDisplay] = useMediaQuery("(max-width: 30em)");
 
@@ -83,7 +85,7 @@ const Table: React.FC<TableProps> = ({
   }
 
   return (
-    <Box border={"2px"} color="blackAlpha.300">
+    <Box border={"2px"} color="blackAlpha.300" data-testid={dataTestId}>
       {/* TODO: MOVE TO NEW FILE */}
       <Accordion
         allowMultiple

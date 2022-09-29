@@ -20,7 +20,6 @@ export const GET_CONTACT_LIST = gql`
       id
       last_name
       phones {
-        id
         number
       }
     }
@@ -35,7 +34,6 @@ export const GET_CONTACT_DETAIL = gql`
       first_name
       created_at
       phones {
-        id
         number
       }
     }

@@ -26,9 +26,7 @@ const FavoriteList = dynamic(() => import("./FavoriteList"), {
   suspense: true,
 });
 
-type Props = {};
-
-const ContactList = (props: Props) => {
+const ContactList = () => {
   const toast = useToast();
   const { isOpen, onOpen, onClose } = useDisclosure();
   const router = useRouter();
@@ -165,7 +163,6 @@ const ContactList = (props: Props) => {
     [deleteContact, onOpen, router]
   );
 
-  // add toast, pagination still not right
   const handleOnChangePage = useCallback(
     async ({
       page,

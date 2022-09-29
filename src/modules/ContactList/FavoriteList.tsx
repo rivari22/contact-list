@@ -12,7 +12,7 @@ type Props = {
 const FavoriteList = ({ data, handleOnClickFavorite }: Props) => {
   return (
     <Box pt={10} minWidth={263}>
-      <Text fontSize="xl" as="b">
+      <Text fontSize="xl" as="b" data-testid="title-favorite-list-testid">
         Favorite List
       </Text>
       <Box mt={8}>
@@ -21,6 +21,7 @@ const FavoriteList = ({ data, handleOnClickFavorite }: Props) => {
           handleOnClickTable={{
             favorite: handleOnClickFavorite,
           }}
+          dataTestId="table-favorite-list-testid"
         />
       </Box>
     </Box>
