@@ -1,13 +1,11 @@
+import React, { useCallback, useState, Suspense } from "react";
 import { useMutation, useQuery } from "@apollo/client";
-import React, { useCallback, useState, Suspense, useTransition } from "react";
 import dynamic from "next/dynamic";
 import { useRouter } from "next/router";
 import {
   Box,
   Button,
   Flex,
-  Skeleton,
-  SkeletonText,
   Text,
   useDisclosure,
   useToast,
@@ -51,9 +49,8 @@ const ContactList = (props: Props) => {
   const [searchInput, setSearchInput] = useState<string>("");
   const [timerSearchInput, setTimerSearchInput] = useState<any>();
 
-  const { loading: loadingGetContactList, refetch: refetchGetContactList } = useQuery(
-    GET_CONTACT_LIST,
-    {
+  const { loading: loadingGetContactList, refetch: refetchGetContactList } =
+    useQuery(GET_CONTACT_LIST, {
       fetchPolicy: "cache-and-network",
       variables: {
         ...defaultPagination,
@@ -83,13 +80,11 @@ const ContactList = (props: Props) => {
             })
           );
           setDataContactList(dataSpecContactList);
-        } else {
+        } else if (!!searchInput && !dataSpecContactList?.length) {
           setDataContactList([]);
-          // handle search empty
         }
       },
-    }
-  );
+    });
 
   const [deleteContact] = useMutation(DELETE_CONTACT, {
     onCompleted: (res) => {

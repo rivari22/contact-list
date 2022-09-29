@@ -1,6 +1,6 @@
+import React, { useMemo } from "react";
 import { ChevronLeftIcon, ChevronRightIcon } from "@chakra-ui/icons";
 import { Box, Button, Flex, IconButton, Text } from "@chakra-ui/react";
-import React, { useMemo } from "react";
 
 export type pageInfoType = {
   limit: number;

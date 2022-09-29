@@ -1,3 +1,4 @@
+import React from "react";
 import {
   Modal as ModalChakra,
   Button,
@@ -9,7 +10,6 @@ import {
   ModalOverlay,
   ModalProps as ModalChakraProps,
 } from "@chakra-ui/react";
-import React from "react";
 
 export type ModalProps = Pick<
   ModalChakraProps,

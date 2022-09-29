@@ -17,6 +17,7 @@ import {
   TagLabel,
   Skeleton,
   SkeletonText,
+  useMediaQuery,
 } from "@chakra-ui/react";
 import {
   StarIcon,
@@ -58,11 +59,12 @@ const Table: React.FC<TableProps> = ({
   EmptyData,
   isLoading,
 }) => {
+  const [isMobileDisplay] = useMediaQuery("(max-width: 30em)");
+
   if (isLoading) {
     return (
       <Skeleton>
         <SkeletonText height={579} />
-        
       </Skeleton>
     );
   }
@@ -101,11 +103,13 @@ const Table: React.FC<TableProps> = ({
               <Flex gap={2} alignItems="center">
                 <Box>
                   <Image
-                    width={80}
-                    height={80}
+                    width={isMobileDisplay ? 40 : 80}
+                    height={isMobileDisplay ? 40 : 80}
+                    layout="fixed"
                     style={{ borderRadius: "50%" }}
                     src={defaultImage}
                     alt="Dan Abramov"
+                    loading="eager"
                   />
                 </Box>
                 <Tag
@@ -113,10 +117,9 @@ const Table: React.FC<TableProps> = ({
                   borderRadius="full"
                   variant="subtle"
                   colorScheme="whiteAlpha"
-                  display="flex"
-                  justifyContent="space-between"
+                  pl={2}
                 >
-                  <TagLabel color="black">{`${record.first_name} ${record.last_name}`}</TagLabel>
+                  <TagLabel color="black" textAlign="left">{`${record.first_name} ${record.last_name}`}</TagLabel>
                 </Tag>
               </Flex>
               <Flex alignItems="center" gap={2}>
@@ -141,6 +144,7 @@ const Table: React.FC<TableProps> = ({
                   <Menu>
                     <MenuButton
                       as={IconButton}
+                      aria-label="menu-row"
                       onClick={(e) => e.stopPropagation()}
                     >
                       <DragHandleIcon />

@@ -1,5 +1,5 @@
-import { Box, Input, InputProps } from "@chakra-ui/react";
 import React from "react";
+import { Box, Input, InputProps } from "@chakra-ui/react";
 
 export type SearchProps = Pick<InputProps, "onChange" | "isInvalid" | "value" | "onKeyDown">;
 

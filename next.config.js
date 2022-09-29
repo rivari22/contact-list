@@ -8,6 +8,10 @@ const nextConfig = {
   images: {
     domains: ["bit.ly"],
   },
+  i18n: {
+    locales: ["en"],
+    defaultLocale: "en",
+  },
 };
 
 module.exports = nextConfig;
